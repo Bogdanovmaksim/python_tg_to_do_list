@@ -1,10 +1,10 @@
 import sqlite3
 import os
-
+from datetime import date
 
 class Database:
 
-    def __init__(self, db_name='todo_bot.db'):
+    def __init__(self, db_name='todo_bot1.db'):
         """
         Инициализирует объект базы данных.
 
@@ -30,7 +30,7 @@ class Database:
             conn = sqlite3.connect(self.db_name)
             conn.close()
 
-    def _get_connection(self, user_id: int):
+    def _get_connection(self):
         """
         Создает и возвращает соединение с базой данных.
 
@@ -57,20 +57,22 @@ class Database:
 
         """
 
-        conn = self._get_connection(user_id)
+        conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            task_text TEXT NOT NULL,
-            done INTEGER DEFAULT 0
+             CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                task_text TEXT NOT NULL,
+                category TEXT,
+                done INTEGER DEFAULT 0,
+                deadline DATE
             )
         ''')
         conn.commit()
         conn.close()
 
-    def add_task(self ,user_id, task_text):
+    def add_task(self ,user_id, task_text, category=None, deadline=None):
         """
         Добавляет новую задачу для указанного пользователя.
 
@@ -78,6 +80,8 @@ class Database:
         :type user_id: int
         :param task_text: Текст задачи.
         :type task_text: str
+        :type: category: str
+        :type: deadline: datetime
         :return: None
         :raises sqlite3.Error: Если не удается добавить задачу.
         :example:
@@ -85,11 +89,16 @@ class Database:
 
         """
 
-        conn = self._get_connection(user_id)
+        conn = self._get_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO tasks (user_id, task_text) VALUES (?, ?)', (user_id, task_text))
+        cursor.execute('''
+                    INSERT INTO tasks (user_id, task_text, category, deadline)
+                    VALUES (?, ?, ?, ?)
+                ''', (user_id, task_text, category, deadline))
+        task_id = cursor.lastrowid
         conn.commit()
         conn.close()
+        return task_id
 
     def get_tasks(self, user_id):
         """
@@ -104,9 +113,12 @@ class Database:
             tasks = db.get_tasks(123456)
 
         """
-        conn = self._get_connection(user_id)
+        conn = self._get_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT id, user_id, task_text, done FROM tasks WHERE user_id = ? ORDER BY id', (user_id,))
+        cursor.execute('''
+                    SELECT id, user_id, task_text, category, done, deadline
+                    FROM tasks WHERE user_id = ? ORDER BY id
+                ''', (user_id,))
         tasks = cursor.fetchall()
         conn.close()
         return tasks
@@ -126,7 +138,7 @@ class Database:
             result = db.mark_done(123456, 999)  # False - задача не найдена
         """
 
-        conn = self._get_connection(user_id)
+        conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('UPDATE tasks SET done = 1 WHERE id = ? AND user_id = ?', (task_id, user_id))
         updated = cursor.rowcount > 0
@@ -149,7 +161,7 @@ class Database:
             result = db.delete_task(123456, 1)
             result = db.delete_task(123456, 999)
         """
-        conn = self._get_connection(user_id)
+        conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM tasks WHERE id = ? AND user_id = ?', (task_id, user_id))
         deleted = cursor.rowcount > 0
@@ -157,15 +169,16 @@ class Database:
         conn.close()
         return deleted
 
-    def close(self):
-        """
-        Закрывает соединение с базой данных.
+    def search_tasks(self, user_id, keyword):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, user_id, task_text, category, done, deadline
+            FROM tasks WHERE user_id = ? AND task_text LIKE ?
+        ''', (user_id, f'%{keyword}%'))
+        tasks = cursor.fetchall()
+        conn.close()
+        return tasks
 
-        :return: None
-        :note: В текущей реализации не используется, так как соединение закрывается в каждом методе.
-        :example:
-            db.close()
-        """
-        pass
 
 
