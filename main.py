@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -7,10 +8,14 @@ from aiogram.utils import keyboard
 from database import Database
 from datetime import datetime, timedelta
 from scheduler import ReminderScheduler
+from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = '8019909740:AAHs3Urym3CLJjIiv86aPV5UiLPixblLp8A'
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise ValueError("TOKEN не найден в .env")
 bot = Bot(token = TOKEN)
 dp = Dispatcher()
 
