@@ -40,7 +40,7 @@ def parse_add_command(text):
                 deadline = datetime.strptime(parts[i + 1], '%Y-%m-%d').date()
                 i += 2
             except ValueError:
-                return None, None, None  # Неверный формат даты
+                return None, None, None
         else:
             task_text.append(parts[i])
             i += 1
@@ -117,6 +117,16 @@ async def cmd_add(message:Message):
 
 @dp.message(Command('list'))
 async def cmd_list(message:Message):
+    '''
+
+    Обработчик команды list. Используется для выведения всех задач пользователя
+
+    :param message: команда list
+    :type message: aiogram.types.Message
+    :return: Отправляет список задач пользователю
+    :rtype: aiogram.types.Message
+
+    '''
     user_id = message.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -130,7 +140,7 @@ async def cmd_list(message:Message):
             cat = f" | Кат: {task[3]}" if task[3] else ""
             dl = f" | Дедлайн: {task[5]}" if task[5] else ""
             response += f"ID: {task[0]} | {task[2]}{cat}{dl} | {status}\n"
-            if not task[4]:  # Только для невыполненных
+            if not task[4]:
                 keyboard.append([
                     InlineKeyboardButton(text=f"✅ Выполнить {task[0]}", callback_data=f"done_{task[0]}"),
                     InlineKeyboardButton(text=f"🗑️ Удалить {task[0]}", callback_data=f"delete_{task[0]}")
@@ -154,7 +164,6 @@ async def process_done_callback(callback_query: types.CallbackQuery):
     except Exception as e:
         logging.error(f"Ошибка при отметке: {e}")
         await callback_query.answer("Ошибка.")
-
 
 @dp.callback_query(lambda c: c.data.startswith('delete_'))
 async def process_delete_callback(callback_query: types.CallbackQuery):
@@ -201,9 +210,6 @@ async def cmd_search(message: Message):
         logging.error(f"Ошибка при поиске: {e}")
         await message.reply("Произошла ошибка. Попробуй позже.")
 
-
-'''Добавь команду /export'''
-
 @dp.message(Command('export'))
 async def cmd_export(message: Message):
     user_id = message.from_user.id
@@ -227,6 +233,15 @@ async def cmd_export(message: Message):
 
 @dp.message(Command('done'))
 async def cmd_done(message: Message):
+    '''
+
+    Обработчик команды /done. По ID задачи отмечает ее выполненой
+
+    :param message: команда /done и ID задачи
+    :type message: aiogram.types.Message
+    :return: Отправляет результат отметки задачи
+    :rtype: aiogram.types.Message
+    '''
     user_id = message.from_user.id
     try:
         task_id = int(message.text.replace('/done', '').strip())
@@ -242,6 +257,16 @@ async def cmd_done(message: Message):
 
 @dp.message(Command('delete'))
 async def cmd_delete(message: Message):
+    '''
+
+    Обработчик команды /delete. Служит для удаления задачи по ее ID
+
+    :param message: Команда done и ID задачи
+    :type message: aiogram.types.Message
+    :return: Сообщает пользователю результат удаления задачи
+    :rtype: aiogram.types.Message
+
+    '''
     user_id = message.from_user.id
     try:
         task_id = int(message.text.replace('/delete', '').strip())
@@ -260,6 +285,13 @@ async def unknown_command(message:Message):
     await message.reply('Неизвестная команда. Используй /start для справки.')
 
 async def main():
+    '''
+
+    Основная асинхронная функция для запуска бота.
+
+    :return: запускает поллинг бота и планировщик напоминаний
+    :rtype: None
+    '''
     await scheduler.start()
     await dp.start_polling(bot)
 
