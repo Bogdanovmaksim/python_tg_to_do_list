@@ -4,14 +4,13 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils import keyboard
-
 from database import Database
 from datetime import datetime, timedelta
 from scheduler import ReminderScheduler
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = '8257429587:AAH1HhfxGuig5rm0rWnuSXTKO60PqCAOvow'
+TOKEN = '8019909740:AAHs3Urym3CLJjIiv86aPV5UiLPixblLp8A'
 bot = Bot(token = TOKEN)
 dp = Dispatcher()
 
@@ -49,6 +48,15 @@ def parse_add_command(text):
 @dp.message(Command('start'))
 async def cmd_start(message:Message):
     user_id = message.from_user.id
+
+    keyboard = [
+        [InlineKeyboardButton(text="📝 Добавить задачу", callback_data="add")],
+        [InlineKeyboardButton(text="📋 Список задач", callback_data="list")],
+        [InlineKeyboardButton(text="🔍 Поиск задач", callback_data="search")],
+        [InlineKeyboardButton(text="📤 Экспорт списка", callback_data="export")]
+    ]
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+
     await message.reply(
         "Привет! Это твой to-do бот. Используй команды:\n"
         "/add текст задачи - добавить задачу\n"
@@ -58,6 +66,23 @@ async def cmd_start(message:Message):
         "ID задач можно увидеть в списке."
     )
     db.create_table(user_id)
+
+@dp.callback_query(lambda c: c.data in ['add', 'list', 'search', 'export'])
+async def process_menu_callback(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    action = callback_query.data
+    if action == 'add':
+        await callback_query.message.edit_text('Используй /add <текст> [category <кат>] [deadline YYYY-MM-DD]')
+    elif action == 'list':
+        await cmd_list(callback_query.message)
+    elif action == 'search':
+        await callback_query.message.edit_text('Используй /search <ключевое слово>')
+    elif action == 'export':
+        await cmd_export(callback_query.message)
+    await callback_query.answer()
+
+
+
 
 @dp.message(Command('add'))
 async def cmd_add(message:Message):
@@ -101,7 +126,10 @@ async def cmd_list(message:Message):
             dl = f" | Дедлайн: {task[5]}" if task[5] else ""
             response += f"ID: {task[0]} | {task[2]}{cat}{dl} | {status}\n"
             if not task[4]:  # Только для невыполненных
-                keyboard.append([InlineKeyboardButton(text=f"✅ Выполнить {task[0]}", callback_data=f"done_{task[0]}")])
+                keyboard.append([
+                    InlineKeyboardButton(text=f"✅ Выполнить {task[0]}", callback_data=f"done_{task[0]}"),
+                    InlineKeyboardButton(text=f"🗑️ Удалить {task[0]}", callback_data=f"delete_{task[0]}")
+                ])
         markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
         await message.reply(response, reply_markup=markup)
     except Exception as e:
@@ -123,11 +151,45 @@ async def process_done_callback(callback_query: types.CallbackQuery):
         await callback_query.answer("Ошибка.")
 
 
+@dp.callback_query(lambda c: c.data.startswith('delete_'))
+async def process_delete_callback(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    task_id = int(callback_query.data.split('_')[1])
+    try:
+        if db.delete_task(user_id, task_id):
+            await callback_query.message.edit_text("Задача удалена! Используй /list для обновления.")
+            await callback_query.answer("Удалено!")
+        else:
+            await callback_query.answer("Задача не найдена.")
+    except Exception as e:
+        logging.error(f"Ошибка при удалении: {e}")
+        await callback_query.answer("Ошибка.")
+
 '''Надо бы добавить обработчик команды /search '''
 
 
 '''Добавь команду /export'''
 
+@dp.message(Command('export'))
+async def cmd_export(message: Message):
+    user_id = message.from_user.id
+    try:
+        tasks = db.get_tasks(user_id)
+        if not tasks:
+            await message.reply("Нет задач для экспорта.")
+            return
+        content = "ID | Задача | Категория | Дедлайн | Статус\n"
+        for task in tasks:
+            status = "Выполнена" if task[4] else "Не выполнена"
+            cat = task[3] or "Нет"
+            dl = task[5] or "Нет"
+            content += f"{task[0]} | {task[2]} | {cat} | {dl} | {status}\n"
+        with open(f'tasks_{user_id}.txt', 'w', encoding='utf-8') as f:
+            f.write(content)
+        await message.reply_document(types.FSInputFile(f'tasks_{user_id}.txt'), caption="Твой список задач")
+    except Exception as e:
+        logging.error(f"Ошибка при экспорте: {e}")
+        await message.reply("Произошла ошибка. Попробуй позже.")
 
 @dp.message(Command('done'))
 async def cmd_done(message: Message):
