@@ -24,6 +24,15 @@ db = Database()
 scheduler = ReminderScheduler(bot, db)
 
 def parse_add_command(text):
+    '''
+
+    Функция парсит команду /add с добавлением категории и дедлайна
+
+    :param text: полный текст команды начинающийся с /add
+    :type text: str
+    :return: возвращает кортеж из трех элементов (текст задачи, категория, дедлайн)
+    :rtype: tuple
+    '''
     parts = text.split()
     if len(parts) < 2:
         return None, None, None
@@ -52,6 +61,14 @@ def parse_add_command(text):
 
 @dp.message(Command('start'))
 async def cmd_start(message:Message):
+    '''
+
+    Обработчик команды start Приветсвует пользователя и показывает списко доступных команд
+
+    :param message:
+    :type message: aiogram.types.Message
+
+    '''
     user_id = message.from_user.id
 
     keyboard = [
@@ -63,12 +80,15 @@ async def cmd_start(message:Message):
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
 
     await message.reply(
-        "Привет! Это твой to-do бот. Используй команды:\n"
-        "/add текст задачи - добавить задачу\n"
+        "Привет! Это последняя версия to-do бота. Используй команды:\n"
+        "/add <текст> [category <кат>] [deadline YYYY-MM-DD] - добавить задачу\n"
         "/list - показать все задачи\n"
+        "/search <слово> - поиск задач\n"
+        "/export - экспорт списка в файл\n"
         "/done id - отметить задачу выполненной\n"
         "/delete id - удалить задачу\n"
         "ID задач можно увидеть в списке."
+        "Пример: /add Сходить на тренировку, category Личное, deadline 2077-22-22"
     )
     db.create_table(user_id)
 
@@ -91,6 +111,16 @@ async def process_menu_callback(callback_query: types.CallbackQuery):
 
 @dp.message(Command('add'))
 async def cmd_add(message:Message):
+    '''
+
+    Обработчик команды add. Используется для добавления новой задачи
+
+    :param message: Команда add
+    :type message: aiogram.types.Message
+    :return: Сообщает результат добавления задачи Пользователю
+    :rtype: aiogram.types.Message
+    :raises Exception: Ошбики работ с базой данных или планировщиком
+    '''
     user_id = message.from_user.id
     command_text = message.text.replace('/add ', '').strip()
     task_text, category, deadline = parse_add_command(command_text)
@@ -153,6 +183,15 @@ async def cmd_list(message:Message):
 
 @dp.callback_query(lambda c: c.data.startswith('done_'))
 async def process_done_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для отметки выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :return: Отмечает задачу выполненной
+    :rtype: aiogram.types.CallbackQuery
+    '''
     user_id = callback_query.from_user.id
     task_id = int(callback_query.data.split('_')[1])
     try:
@@ -167,6 +206,15 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data.startswith('delete_'))
 async def process_delete_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для удаления выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :return: Отмечает задачу удаленной
+    :rtype: aiogram.types.CallbackQuery
+    '''
     user_id = callback_query.from_user.id
     task_id = int(callback_query.data.split('_')[1])
     try:
@@ -212,6 +260,16 @@ async def cmd_search(message: Message):
 
 @dp.message(Command('export'))
 async def cmd_export(message: Message):
+    '''
+
+    Обработчик команды /export. Экспортирует все задачи пользователя в текстовый файл
+
+    :param message: команда export
+    :type message: aiogram.types.Message
+    :return: Отправляет пользователю текстовый файл с задачами
+    :rtype: aiogram.types.Message
+    :raises Exception: при ошибках работы с базой данных или файловой системой
+    '''
     user_id = message.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -282,6 +340,15 @@ async def cmd_delete(message: Message):
 
 @dp.message()
 async def unknown_command(message:Message):
+    '''
+    
+    Обработчик любых команд неизвестных боту
+    
+    :param message: Любая команда, не заданная боту
+    :type message: aiogram.types.Message
+    :return: Отправляет пользователю сообщение с подсказкой ввести команду /start
+    :rtype: aiogram.types.Message
+    '''
     await message.reply('Неизвестная команда. Используй /start для справки.')
 
 async def main():
