@@ -170,7 +170,36 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
         logging.error(f"Ошибка при удалении: {e}")
         await callback_query.answer("Ошибка.")
 
-'''Надо бы добавить обработчик команды /search '''
+@dp.message(Command('search'))
+async def cmd_search(message: Message):
+    '''
+
+    Обработчик команды search. Используется для поиска задач пользователя
+
+    :param message: команда search и ее ID
+    :type message: aiogram.types.Message
+    :return: Сообщает статус задачи если такая найдена
+    :rtype: aiogram.types.Message
+    :raises Exception: при ошибках работы с базой данных во время поиска
+     '''
+    user_id = message.from_user.id
+    keyword = message.text.replace('/search', '').strip()
+    if not keyword:
+        await message.reply("Укажи ключевое слово, например: /search молоко")
+        return
+    try:
+        tasks = db.search_tasks(user_id, keyword)
+        if not tasks:
+            await message.reply("Ничего не найдено.")
+            return
+        response = f"Результаты поиска по '{keyword}':\n"
+        for task in tasks:
+            status = "✅ Выполнена" if task[4] else "❌ Не выполнена"
+            response += f"ID: {task[0]} | {task[2]} | {status}\n"
+        await message.reply(response)
+    except Exception as e:
+        logging.error(f"Ошибка при поиске: {e}")
+        await message.reply("Произошла ошибка. Попробуй позже.")
 
 
 '''Добавь команду /export'''
