@@ -11,3 +11,4 @@ wheels/
 .DS_Store
 .env
 .vscode/
+todo_bot.db
