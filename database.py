@@ -4,7 +4,7 @@ from datetime import date
 
 class Database:
 
-    def __init__(self, db_name='todo_bot1.db'):
+    def __init__(self, db_name='todo_bot.db'):
         """
         Инициализирует объект базы данных.
 
@@ -179,6 +179,15 @@ class Database:
         tasks = cursor.fetchall()
         conn.close()
         return tasks
+
+    def clear_all_tasks(self, user_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM tasks WHERE user_id = ?', (user_id,))
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return deleted_count
 
 
 
