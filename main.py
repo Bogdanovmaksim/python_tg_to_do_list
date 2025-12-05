@@ -27,12 +27,26 @@ scheduler = ReminderScheduler(bot, db)
 
 
 class AddTaskStates(StatesGroup):
+    '''
+
+    Определение этапов последовательного диалога в общении с пользователем
+    при добавлении новой задачи
+     States:
+        waiting_for_text: ожидание ввода текста задачи
+        waiting_for_category: ожидание ввода категории задачи (опционально)
+        waiting_for_deadline: ожидание ввода дедлайна задачи (опционально)
+    '''
     waiting_for_text = State()
     waiting_for_category = State()
     waiting_for_deadline = State()
 
 
 def get_back_keyboard():
+    '''
+    Создает клавиатуру с кнопкой назад
+    :returns: Выводит кнопку назад пользователю
+    :rtype: aiogram.types.InlineKeyboardButton
+    '''
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='⬅️ Назад', callback_data='back_to_start'), ]
     ])
@@ -285,7 +299,7 @@ async def cmd_list(message: Message):
 
     :param message: команда list
     :type message: aiogram.types.Message
-    :return: Отправляет список задач пользователю
+    :returns: Отправляет список задач пользователю
     :rtype: aiogram.types.Message
 
     '''
@@ -322,7 +336,7 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :return: Отмечает задачу выполненной
+    :returns: Отмечает задачу выполненной
     :rtype: aiogram.types.CallbackQuery
     '''
     user_id = callback_query.from_user.id
@@ -347,7 +361,7 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :return: Отмечает задачу удаленной
+    :returns: Отмечает задачу удаленной
     :rtype: aiogram.types.CallbackQuery
     '''
     user_id = callback_query.from_user.id
@@ -371,7 +385,7 @@ async def cmd_search(message: Message):
 
     :param message: команда search и ее ID
     :type message: aiogram.types.Message
-    :return: Сообщает статус задачи если такая найдена
+    :returns: Сообщает статус задачи если такая найдена
     :rtype: aiogram.types.Message
     :raises Exception: при ошибках работы с базой данных во время поиска
      '''
@@ -402,7 +416,7 @@ async def cmd_export(message: Message):
 
     :param message: команда export
     :type message: aiogram.types.Message
-    :return: Отправляет пользователю текстовый файл с задачами
+    :returns: Отправляет пользователю текстовый файл с задачами
     :rtype: aiogram.types.Message
     :raises Exception: при ошибках работы с базой данных или файловой системой
     '''
@@ -434,7 +448,7 @@ async def cmd_done(message: Message):
 
     :param message: команда /done и ID задачи
     :type message: aiogram.types.Message
-    :return: Отправляет результат отметки задачи
+    :returns: Отправляет результат отметки задачи
     :rtype: aiogram.types.Message
     '''
     user_id = message.from_user.id
@@ -458,7 +472,7 @@ async def cmd_delete(message: Message):
 
     :param message: Команда done и ID задачи
     :type message: aiogram.types.Message
-    :return: Сообщает пользователю результат удаления задачи
+    :returns: Сообщает пользователю результат удаления задачи
     :rtype: aiogram.types.Message
 
     '''
@@ -483,7 +497,7 @@ async def unknown_command(message: Message):
 
     :param message: Любая команда, не заданная боту
     :type message: aiogram.types.Message
-    :return: Отправляет пользователю сообщение с подсказкой ввести команду /start
+    :returns: Отправляет пользователю сообщение с подсказкой ввести команду /start
     :rtype: aiogram.types.Message
     '''
     await message.reply('Неизвестная команда. Используй /start для справки.', reply_markup=get_back_keyboard())
@@ -493,7 +507,7 @@ async def main():
 
     Основная асинхронная функция для запуска бота.
 
-    :return: запускает поллинг бота и планировщик напоминаний
+    :returns: запускает поллинг бота и планировщик напоминаний
     :rtype: None
     '''
     await scheduler.start()
