@@ -27,26 +27,12 @@ scheduler = ReminderScheduler(bot, db)
 
 
 class AddTaskStates(StatesGroup):
-    '''
-
-    Определение этапов последовательного диалога в общении с пользователем
-    при добавлении новой задачи
-     States:
-        waiting_for_text: ожидание ввода текста задачи
-        waiting_for_category: ожидание ввода категории задачи (опционально)
-        waiting_for_deadline: ожидание ввода дедлайна задачи (опционально)
-    '''
     waiting_for_text = State()
     waiting_for_category = State()
     waiting_for_deadline = State()
 
 
 def get_back_keyboard():
-    '''
-    Создает клавиатуру с кнопкой назад
-    :returns: Выводит кнопку назад пользователю
-    :rtype: aiogram.types.InlineKeyboardButton
-    '''
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='⬅️ Назад', callback_data='back_to_start'), ]
     ])
@@ -74,25 +60,22 @@ async def cmd_start(message: Message, state: FSMContext):
     keyboard = [
         [InlineKeyboardButton(text="📝 Добавить задачу", callback_data="add")],
         [InlineKeyboardButton(text="📋 Список задач", callback_data="list")],
-        [InlineKeyboardButton(text="🔍 Поиск задач", callback_data="search")],
-        [InlineKeyboardButton(text="📤 Экспорт списка", callback_data="export")]
+        [InlineKeyboardButton(text="🗑️ Очистить все", callback_data="clear_all")]
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     await message.reply(
         "Привет! Это последняя версия to-do-list бота. Выбери действие или используй команды:\n"
         "/add - добавить задачу (пошагово)\n"
-        "/list - список\n"
-        "/search <слово> - поиск\n"
-        "/export - экспорт\n"
+        "/list - список задач\n"
         "/clear - очистить все задачи\n"
-        "/done <id> - выполнить\n"
-        "/delete <id> - удалить",
+        "/done <id> - выполнить задачу\n"
+        "/delete <id> - удалить задачу",
         reply_markup=markup
     )
     db.create_table(user_id)
 
 
-@dp.callback_query(lambda c: c.data in ["add", "list", "search", "export"])
+@dp.callback_query(lambda c: c.data in ["add", "list", "clear_all"])
 async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMContext):
     await state.clear()
     user_id = callback_query.from_user.id
@@ -102,13 +85,16 @@ async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMC
         await state.set_state(AddTaskStates.waiting_for_text)
     elif action == "list":
         await cmd_list_callback(callback_query)
-    elif action == "search":
-        await callback_query.message.edit_text(
-            "Введи: /search <ключевое слово>\nПример: /search молоко",
-            reply_markup=get_back_keyboard()
-        )
-    elif action == "export":
-        await cmd_export_callback(callback_query)
+    elif action == "clear_all":
+        try:
+            deleted_count = db.clear_all_tasks(user_id)
+            await callback_query.message.edit_text(
+                f"Удалено {deleted_count} задач. Теперь список пуст.",
+                reply_markup=get_back_keyboard()
+            )
+        except Exception as e:
+            logging.error(f"Ошибка при очистке: {e}")
+            await callback_query.message.edit_text("Произошла ошибка. Попробуй позже.", reply_markup=get_back_keyboard())
     await callback_query.answer()
 
 
@@ -130,7 +116,6 @@ async def process_category_choice(callback_query: types.CallbackQuery, state: FS
         await state.set_state(AddTaskStates.waiting_for_category)
     else:
         await state.update_data(category=None)
-        # ОШИБКА БЫЛА ЗДЕСЬ: не было обработчика для кнопок add_deadline/skip_deadline
         markup = get_choice_keyboard("Добавить дедлайн", "Пропустить", "add_deadline", "skip_deadline")
         await callback_query.message.edit_text("Хочешь добавить дедлайн (YYYY-MM-DD)?", reply_markup=markup)
     await callback_query.answer()
@@ -228,44 +213,22 @@ async def cmd_list_callback(callback_query: types.CallbackQuery):
             return
         response = "Твои задачи:\n"
         keyboard = []
-        for task in tasks:
+        for i, task in enumerate(tasks, start=1):  # Локальный ID: 1, 2, 3...
+            local_id = i
             status = "✅ Выполнена" if task[4] else "❌ Не выполнена"
-            cat = f" | Кат: {task[3]}" if task[3] else ""
-            dl = f" | Дедлайн: {task[5]}" if task[5] else ""
-            response += f"ID: {task[0]} | {task[2]}{cat}{dl} | {status}\n"
+            cat = f" | Кат: {task[3]}" if task[3] else " | Кат: Нет"
+            dl = f" | Дедлайн: {task[5]}" if task[5] else " | Дедлайн: Нет"
+            response += f"ID: {local_id} | {task[2]}{cat}{dl} | {status}\n"
             if not task[4]:
                 keyboard.append([
-                    InlineKeyboardButton(text=f"✅ Выполнить {task[0]}", callback_data=f"done_{task[0]}"),
-                    InlineKeyboardButton(text=f"🗑️ Удалить {task[0]}", callback_data=f"delete_{task[0]}")
+                    InlineKeyboardButton(text=f"✅ Выполнить {local_id}", callback_data=f"done_{task[0]}"),
+                    InlineKeyboardButton(text=f"🗑️ Удалить {local_id}", callback_data=f"delete_{task[0]}")
                 ])
         keyboard.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_start")])
         markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
         await callback_query.message.edit_text(response, reply_markup=markup)
     except Exception as e:
         logging.error(f"Ошибка при списке: {e}")
-        await callback_query.message.edit_text("Произошла ошибка. Попробуй позже.", reply_markup=get_back_keyboard())
-
-
-async def cmd_export_callback(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    try:
-        tasks = db.get_tasks(user_id)
-        if not tasks:
-            await callback_query.message.edit_text("Нет задач для экспорта.", reply_markup=get_back_keyboard())
-            return
-        content = "ID | Задача | Категория | Дедлайн | Статус\n"
-        for task in tasks:
-            status = "Выполнена" if task[4] else "Не выполнена"
-            cat = task[3] or "Нет"
-            dl = task[5] or "Нет"
-            content += f"{task[0]} | {task[2]} | {cat} | {dl} | {status}\n"
-        with open(f'tasks_{user_id}.txt', 'w', encoding='utf-8') as f:
-            f.write(content)
-        await callback_query.message.edit_text("Экспорт готов! Скачай файл ниже.", reply_markup=get_back_keyboard())
-        await callback_query.message.reply_document(types.FSInputFile(f'tasks_{user_id}.txt'),
-                                                    caption="Твой список задач")
-    except Exception as e:
-        logging.error(f"Ошибка при экспорте: {e}")
         await callback_query.message.edit_text("Произошла ошибка. Попробуй позже.", reply_markup=get_back_keyboard())
 
 
@@ -299,7 +262,7 @@ async def cmd_list(message: Message):
 
     :param message: команда list
     :type message: aiogram.types.Message
-    :returns: Отправляет список задач пользователю
+    :return: Отправляет список задач пользователю
     :rtype: aiogram.types.Message
 
     '''
@@ -336,7 +299,7 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :returns: Отмечает задачу выполненной
+    :return: Отмечает задачу выполненной
     :rtype: aiogram.types.CallbackQuery
     '''
     user_id = callback_query.from_user.id
@@ -361,7 +324,7 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :returns: Отмечает задачу удаленной
+    :return: Отмечает задачу удаленной
     :rtype: aiogram.types.CallbackQuery
     '''
     user_id = callback_query.from_user.id
@@ -377,69 +340,6 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
         logging.error(f"Ошибка при удалении: {e}")
         await callback_query.answer("Ошибка.")
 
-@dp.message(Command('search'))
-async def cmd_search(message: Message):
-    '''
-
-    Обработчик команды search. Используется для поиска задач пользователя
-
-    :param message: команда search и ее ID
-    :type message: aiogram.types.Message
-    :returns: Сообщает статус задачи если такая найдена
-    :rtype: aiogram.types.Message
-    :raises Exception: при ошибках работы с базой данных во время поиска
-     '''
-    user_id = message.from_user.id
-    keyword = message.text.replace('/search', '').strip()
-    if not keyword:
-        await message.reply("Укажи ключевое слово, например: /search молоко", reply_markup=get_back_keyboard())
-        return
-    try:
-        tasks = db.search_tasks(user_id, keyword)
-        if not tasks:
-            await message.reply("Ничего не найдено.", reply_markup=get_back_keyboard())
-            return
-        response = f"Результаты поиска по '{keyword}':\n"
-        for task in tasks:
-            status = "✅ Выполнена" if task[4] else "❌ Не выполнена"
-            response += f"ID: {task[0]} | {task[2]} | {status}\n"
-        await message.reply(response, reply_markup=get_back_keyboard())
-    except Exception as e:
-        logging.error(f"Ошибка при поиске: {e}")
-        await message.reply("Произошла ошибка. Попробуй позже.", reply_markup=get_back_keyboard())
-
-@dp.message(Command('export'))
-async def cmd_export(message: Message):
-    '''
-
-    Обработчик команды /export. Экспортирует все задачи пользователя в текстовый файл
-
-    :param message: команда export
-    :type message: aiogram.types.Message
-    :returns: Отправляет пользователю текстовый файл с задачами
-    :rtype: aiogram.types.Message
-    :raises Exception: при ошибках работы с базой данных или файловой системой
-    '''
-    user_id = message.from_user.id
-    try:
-        tasks = db.get_tasks(user_id)
-        if not tasks:
-            await message.reply("Нет задач для экспорта.", reply_markup=get_back_keyboard())
-            return
-        content = "ID | Задача | Категория | Дедлайн | Статус\n"
-        for task in tasks:
-            status = "Выполнена" if task[4] else "Не выполнена"
-            cat = task[3] or "Нет"
-            dl = task[5] or "Нет"
-            content += f"{task[0]} | {task[2]} | {cat} | {dl} | {status}\n"
-        with open(f'tasks_{user_id}.txt', 'w', encoding='utf-8') as f:
-            f.write(content)
-        await message.reply_document(types.FSInputFile(f'tasks_{user_id}.txt'), caption="Твой список задач",
-                                     reply_markup=get_back_keyboard())
-    except Exception as e:
-        logging.error(f"Ошибка при экспорте: {e}")
-        await message.reply("Произошла ошибка. Попробуй позже.")
-
 @dp.message(Command('done'))
 async def cmd_done(message: Message):
     '''
@@ -448,7 +348,7 @@ async def cmd_done(message: Message):
 
     :param message: команда /done и ID задачи
     :type message: aiogram.types.Message
-    :returns: Отправляет результат отметки задачи
+    :return: Отправляет результат отметки задачи
     :rtype: aiogram.types.Message
     '''
     user_id = message.from_user.id
@@ -472,7 +372,7 @@ async def cmd_delete(message: Message):
 
     :param message: Команда done и ID задачи
     :type message: aiogram.types.Message
-    :returns: Сообщает пользователю результат удаления задачи
+    :return: Сообщает пользователю результат удаления задачи
     :rtype: aiogram.types.Message
 
     '''
@@ -497,7 +397,7 @@ async def unknown_command(message: Message):
 
     :param message: Любая команда, не заданная боту
     :type message: aiogram.types.Message
-    :returns: Отправляет пользователю сообщение с подсказкой ввести команду /start
+    :return: Отправляет пользователю сообщение с подсказкой ввести команду /start
     :rtype: aiogram.types.Message
     '''
     await message.reply('Неизвестная команда. Используй /start для справки.', reply_markup=get_back_keyboard())
@@ -507,7 +407,7 @@ async def main():
 
     Основная асинхронная функция для запуска бота.
 
-    :returns: запускает поллинг бота и планировщик напоминаний
+    :return: запускает поллинг бота и планировщик напоминаний
     :rtype: None
     '''
     await scheduler.start()
