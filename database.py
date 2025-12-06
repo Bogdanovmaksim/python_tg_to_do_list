@@ -72,7 +72,7 @@ class Database:
         conn.commit()
         conn.close()
 
-    def add_task(self ,user_id, task_text, category=None, deadline=None):
+    def add_task(self, user_id, task_text, category=None, deadline=None):
         """
         Добавляет новую задачу для указанного пользователя.
 
@@ -82,13 +82,12 @@ class Database:
         :type task_text: str
         :type: category: str
         :type: deadline: datetime
-        :return: None
+        :return: ID добавленной задачи
         :raises sqlite3.Error: Если не удается добавить задачу.
         :example:
-            db.add_task(123456, "Купить молоко")
+            task_id = db.add_task(123456, "Купить молоко")
 
         """
-
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -122,6 +121,7 @@ class Database:
         tasks = cursor.fetchall()
         conn.close()
         return tasks
+
     def mark_done(self, user_id, task_id):
         """
         Отмечает задачу как выполненную.
@@ -137,7 +137,6 @@ class Database:
             result = db.mark_done(123456, 1)  # True - задача найдена и обновлена
             result = db.mark_done(123456, 999)  # False - задача не найдена
         """
-
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('UPDATE tasks SET done = 1 WHERE id = ? AND user_id = ?', (task_id, user_id))
@@ -169,18 +168,18 @@ class Database:
         conn.close()
         return deleted
 
-    def search_tasks(self, user_id, keyword):
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, user_id, task_text, category, done, deadline
-            FROM tasks WHERE user_id = ? AND task_text LIKE ?
-        ''', (user_id, f'%{keyword}%'))
-        tasks = cursor.fetchall()
-        conn.close()
-        return tasks
-
     def clear_all_tasks(self, user_id):
+        """
+        Удаляет все задачи пользователя.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :return: Количество удаленных задач.
+        :rtype: int
+        :raises sqlite3.Error: Если не удается удалить задачи.
+        :example:
+            deleted_count = db.clear_all_tasks(123456)
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM tasks WHERE user_id = ?', (user_id,))
@@ -188,6 +187,3 @@ class Database:
         conn.commit()
         conn.close()
         return deleted_count
-
-
-
