@@ -64,12 +64,7 @@ async def cmd_start(message: Message, state: FSMContext):
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     await message.reply(
-        "Привет! Это последняя версия to-do-list бота. Выбери действие или используй команды:\n"
-        "/add - добавить задачу (пошагово)\n"
-        "/list - список задач\n"
-        "/clear - очистить все задачи\n"
-        "/done <id> - выполнить задачу\n"
-        "/delete <id> - удалить задачу",
+        "Привет! Это to-do-list бота. Выбери действие:\n",
         reply_markup=markup
     )
     db.create_table(user_id)
@@ -121,7 +116,7 @@ async def process_category_choice(callback_query: types.CallbackQuery, state: FS
     await callback_query.answer()
 
 
-# ДОБАВЛЕНО: обработчик выбора дедлайна
+
 @dp.callback_query(lambda c: c.data in ['add_deadline', 'skip_deadline'])
 async def process_deadline_choice(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.data == "add_deadline":
@@ -181,7 +176,6 @@ async def finalize_add_task(source, state: FSMContext):
             response += f" (Категория: {category})"
         if deadline:
             response += f" (Дедлайн: {deadline})"
-            # Запланировать напоминание
             reminder_time = datetime.combine(deadline, datetime.min.time()) - timedelta(days=1)
             if reminder_time > datetime.now():
                 scheduler.add_reminder(user_id, task_id, task_text, reminder_time)
@@ -213,7 +207,7 @@ async def cmd_list_callback(callback_query: types.CallbackQuery):
             return
         response = "Твои задачи:\n"
         keyboard = []
-        for i, task in enumerate(tasks, start=1):  # Локальный ID: 1, 2, 3...
+        for i, task in enumerate(tasks, start=1):
             local_id = i
             status = "✅ Выполнена" if task[4] else "❌ Не выполнена"
             cat = f" | Кат: {task[3]}" if task[3] else " | Кат: Нет"
@@ -237,59 +231,6 @@ async def back_to_start(callback_query: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await cmd_start(callback_query.message, state)
     await callback_query.answer()
-
-@dp.message(Command('clear'))
-async def cmd_clear(message: Message):
-    user_id = message.from_user.id
-    try:
-        deleted_count = db.clear_all_tasks(user_id)
-        await message.reply(f"Удалено {deleted_count} задач. Теперь список пуст.", reply_markup=get_back_keyboard())
-    except Exception as e:
-        logging.error(f"Ошибка при очистке: {e}")
-
-@dp.message(Command('add'))
-async def cmd_add(message: Message, state: FSMContext):
-    await state.clear()
-    await message.reply("Введи текст задачи:", reply_markup=get_back_keyboard())
-    await state.set_state(AddTaskStates.waiting_for_text)
-
-
-@dp.message(Command('list'))
-async def cmd_list(message: Message):
-    '''
-
-    Обработчик команды list. Используется для выведения всех задач пользователя
-
-    :param message: команда list
-    :type message: aiogram.types.Message
-    :return: Отправляет список задач пользователю
-    :rtype: aiogram.types.Message
-
-    '''
-    user_id = message.from_user.id
-    try:
-        tasks = db.get_tasks(user_id)
-        if not tasks:
-            await message.reply("У тебя нет задач.", reply_markup=get_back_keyboard())
-            return
-        response = "Твои задачи:\n"
-        keyboard = []
-        for task in tasks:
-            status = "✅ Выполнена" if task[4] else "❌ Не выполнена"
-            cat = f" | Кат: {task[3]}" if task[3] else ""
-            dl = f" | Дедлайн: {task[5]}" if task[5] else ""
-            response += f"ID: {task[0]} | {task[2]}{cat}{dl} | {status}\n"
-            if not task[4]:
-                keyboard.append([
-                    InlineKeyboardButton(text=f"✅ Выполнить {task[0]}", callback_data=f"done_{task[0]}"),
-                    InlineKeyboardButton(text=f"🗑️ Удалить {task[0]}", callback_data=f"delete_{task[0]}")
-                ])
-        keyboard.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_start")])
-        markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-        await message.reply(response, reply_markup=markup)
-    except Exception as e:
-        logging.error(f"Ошибка при списке: {e}")
-        await message.reply("Произошла ошибка. Попробуй позже.", reply_markup=get_back_keyboard())
 
 @dp.callback_query(lambda c: c.data.startswith('done_'))
 async def process_done_callback(callback_query: types.CallbackQuery):
@@ -339,55 +280,6 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
     except Exception as e:
         logging.error(f"Ошибка при удалении: {e}")
         await callback_query.answer("Ошибка.")
-
-@dp.message(Command('done'))
-async def cmd_done(message: Message):
-    '''
-
-    Обработчик команды /done. По ID задачи отмечает ее выполненой
-
-    :param message: команда /done и ID задачи
-    :type message: aiogram.types.Message
-    :return: Отправляет результат отметки задачи
-    :rtype: aiogram.types.Message
-    '''
-    user_id = message.from_user.id
-    try:
-        task_id = int(message.text.replace('/done', '').strip())
-        if db.mark_done(user_id, task_id):
-            await message.reply(f"Задача {task_id} отмечена как выполненная!")
-        else:
-            await message.reply(f"Задача {task_id} не найдена или уже выполнена.")
-    except ValueError:
-        await message.reply("Ошибка: укажи ID задачи числом, например: /done 1")
-    except Exception as e:
-        logging.error(f"Ошибка при отметке задачи: {e}")
-        await message.reply("Произошла ошибка. Попробуй позже.")
-
-@dp.message(Command('delete'))
-async def cmd_delete(message: Message):
-    '''
-
-    Обработчик команды /delete. Служит для удаления задачи по ее ID
-
-    :param message: Команда done и ID задачи
-    :type message: aiogram.types.Message
-    :return: Сообщает пользователю результат удаления задачи
-    :rtype: aiogram.types.Message
-
-    '''
-    user_id = message.from_user.id
-    try:
-        task_id = int(message.text.replace('/delete', '').strip())
-        if db.delete_task(user_id, task_id):
-            await message.reply(f"Задача {task_id} удалена!")
-        else:
-            await message.reply(f"Задача {task_id} не найдена.")
-    except ValueError:
-        await message.reply("Ошибка: укажи ID задачи числом, например: /delete 1")
-    except Exception as e:
-        logging.error(f"Ошибка при удалении задачи: {e}")
-        await message.reply("Произошла ошибка. Попробуй позже.")
 
 @dp.message()
 async def unknown_command(message: Message):
