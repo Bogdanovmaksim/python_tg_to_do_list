@@ -60,6 +60,7 @@ async def cmd_start(message: Message, state: FSMContext):
     keyboard = [
         [InlineKeyboardButton(text="📝 Добавить задачу", callback_data="add")],
         [InlineKeyboardButton(text="📋 Список задач", callback_data="list")],
+        [InlineKeyboardButton(text="📊 Статистика", callback_data="stats")],
         [InlineKeyboardButton(text="🗑️ Очистить все", callback_data="clear_all")]
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
@@ -70,7 +71,7 @@ async def cmd_start(message: Message, state: FSMContext):
     db.create_table(user_id)
 
 
-@dp.callback_query(lambda c: c.data in ["add", "list", "clear_all"])
+@dp.callback_query(lambda c: c.data in ["add", "list","stats", "clear_all"])
 async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMContext):
     await state.clear()
     user_id = callback_query.from_user.id
@@ -80,6 +81,8 @@ async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMC
         await state.set_state(AddTaskStates.waiting_for_text)
     elif action == "list":
         await cmd_list_callback(callback_query)
+    elif action == "stats":
+        await show_statistics(callback_query)
     elif action == "clear_all":
         try:
             deleted_count = db.clear_all_tasks(user_id)
@@ -199,6 +202,15 @@ async def finalize_add_task(source, state: FSMContext):
 
 
 async def cmd_list_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Функция обработчик кнопки Список задач. Выводит пользователю все активные и завершённые задачи
+
+    :param callback_query: callback запрос от кнопки "Список задач"
+    :type: types.CallbackQuery
+    :returns: None
+    :raises Exception: при ошибках с работой базой данных
+    '''
     user_id = callback_query.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -228,9 +240,79 @@ async def cmd_list_callback(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data == "back_to_start")
 async def back_to_start(callback_query: types.CallbackQuery, state: FSMContext):
+    '''
+
+    Обработчик кнопки "Назад". Возвращает пользователя в начальное меню.
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: types.CallbackQuery
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+
+    '''
     await state.clear()
     await cmd_start(callback_query.message, state)
     await callback_query.answer()
+
+
+async def show_statistics(callback_query: types.CallbackQuery):
+    '''
+
+    Функция обрабатывает кнопку "Статистика". Выводит пользователю полную статистику по его задачам
+
+    :param callback_query: callback запрос от нажатия кнопки "Статистика"
+    :type callback_query: types.CallbackQuery
+    :returns: None
+    :raises Exception: при ошибках работы из базы данных
+    '''
+    user_id = callback_query.from_user.id
+    try:
+        tasks = db.get_tasks(user_id)
+
+        if not tasks:
+            await callback_query.message.edit_text("📊 У тебя еще нет задач",reply_markup=get_back_keyboard())
+            await callback_query.answer()
+            return
+        total = len(tasks)
+        done = sum(1 for task in tasks if task[4])
+        percent = (done / total * 100) if total > 0 else 0
+
+        bar_length = 10
+        filled = int(bar_length * done / total)
+
+        if percent >= 80:
+            filled_char = "🟩"
+            empty_char = "⬜"
+            emoji = "🎉"
+        elif percent >= 50:
+            filled_char = "🟨"
+            empty_char = "⬜"
+            emoji = "👍"
+        else:
+            filled_char = "🟥"
+            empty_char = "⬜"
+            emoji = "💪 "
+
+        progress_bar = filled_char * filled + empty_char * (bar_length - filled)
+
+        message = (
+            f"{emoji} <b>СТАТИСТИКА</b> {emoji}\n\n"
+            f"✅ <b>Выполнено:</b> {done}\n"
+            f"⏳ <b>Осталось:</b> {total - done}\n"
+            f"📋 <b>Всего:</b> {total}\n"
+            f"📈 <b>Прогресс:</b> {percent:.1f}%\n\n"
+            f"{progress_bar}"
+        )
+
+        await callback_query.message.edit_text( message,reply_markup=get_back_keyboard(),parse_mode="HTML")
+
+    except Exception as e:
+        logging.error(f"Ошибка статистики: {e}")
+        await callback_query.message.edit_text("⚠ Ошибка загрузки статистики",reply_markup=get_back_keyboard())
+
+    await callback_query.answer()
+
 
 @dp.callback_query(lambda c: c.data.startswith('done_'))
 async def process_done_callback(callback_query: types.CallbackQuery):
@@ -240,7 +322,7 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :return: Отмечает задачу выполненной
+    :returns: Отмечает задачу выполненной
     :rtype: aiogram.types.CallbackQuery
     '''
     pass
@@ -254,7 +336,7 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :return: Отмечает задачу удаленной
+    :returns: Отмечает задачу удаленной
     :rtype: aiogram.types.CallbackQuery
     '''
     pass
@@ -267,7 +349,7 @@ async def unknown_command(message: Message):
 
     :param message: Любая команда, не заданная боту
     :type message: aiogram.types.Message
-    :return: Отправляет пользователю сообщение с подсказкой ввести команду /start
+    :returns: Отправляет пользователю сообщение с подсказкой ввести команду /start
     :rtype: aiogram.types.Message
     '''
     await message.reply('Неизвестная команда. Используй /start для справки.', reply_markup=get_back_keyboard())
@@ -277,7 +359,7 @@ async def main():
 
     Основная асинхронная функция для запуска бота.
 
-    :return: запускает поллинг бота и планировщик напоминаний
+    :returns: запускает поллинг бота и планировщик напоминаний
     :rtype: None
     '''
     await scheduler.start()
