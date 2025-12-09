@@ -338,6 +338,7 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
     :type callback_query: aiogram.types.CallbackQuery
     :returns: Отмечает задачу удаленной
     :rtype: aiogram.types.CallbackQuery
+
     '''
     pass
 
