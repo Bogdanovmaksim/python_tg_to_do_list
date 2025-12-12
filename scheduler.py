@@ -6,26 +6,15 @@ from database import Database
 
 
 class ReminderScheduler:
-    '''
-    Класс для управления напоминаниями о задачах.
-
-    Использует APScheduler для отправки уведомлений пользователям
-    о приближающихся дедлайнах задач.
-    '''
     def __init__(self, bot: Bot, db: Database):
-        '''
-        Инициализирует планировщик напоминаний.
-
-        :param bot: объект бота для отправки сообщений
-        :type bot: aiogram.Bot
-        :param db: объект базы данных для работы с задачами
-        :type db: Database
-        '''
         self.bot = bot
         self.db = db
         self.scheduler = AsyncIOScheduler()
 
     async def start(self):
+        self.scheduler.start()
+
+    def add_reminder(self, user_id, task_id, task_text, reminder_time: datetime):
         '''
         Запускает планировщик напоминаний.
 
@@ -53,8 +42,7 @@ class ReminderScheduler:
             self._send_reminder,
             trigger=DateTrigger(run_date=reminder_time),
             args=[user_id, task_id, task_text],
-            id = f'reminder_{user_id}_{task_id}'
-
+            id=f'reminder_{user_id}_{task_id}'
         )
 
     async def _send_reminder(self, user_id, task_id, task_text):
@@ -79,4 +67,3 @@ class ReminderScheduler:
             )
         except Exception as e:
             print(f'Ошибка отправки напоминания: {e}')
-
