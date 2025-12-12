@@ -31,7 +31,7 @@ class ReminderScheduler:
 
         Должен быть вызван один раз при старте бота.
 
-        :returns: запускает фоновый планировщик
+        :returns: none
         '''
         self.scheduler.start()
 
@@ -47,7 +47,7 @@ class ReminderScheduler:
     :type task_text: str
     :param reminder_time: время отправки напоминания
     :type reminder_time: datetime.datetime
-    :returns: создает задание в планировщике
+    :returns: none
         '''
         self.scheduler.add_job(
             self._send_reminder,
@@ -69,7 +69,7 @@ class ReminderScheduler:
         :type task_id: int
         :param task_text: текст задачи для напоминания
         :type task_text: str
-        :returns: отправляет сообщение с напоминанием
+        :returns: none
         :raises Exception: при ошибках отправки сообщения
         '''
         try:
