@@ -1,84 +1,84 @@
-from datetime import datetime
+import sqlite3
+import os
+from datetime import date
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.date import DateTrigger
-from aiogram import Bot
+class Database:
 
-from database import Database
+    def __init__(self, db_name='todo_bot.db'):
+        self.db_name = db_name
+        self._ensure_db_exists()
 
+    def _ensure_db_exists(self):
+        if not os.path.exists(self.db_name):
+            conn = sqlite3.connect(self.db_name)
+            conn.close()
 
-class ReminderScheduler:
-    """
-    Класс для управления напоминаниями о задачах.
+    def _get_connection(self):
+        conn = sqlite3.connect(self.db_name)
+        return conn
 
-    Использует APScheduler для отправки уведомлений пользователям
-    о приближающихся дедлайнах задач.
-    """
-
-    def __init__(self, bot: Bot, db: Database):
-        """
-        Инициализирует планировщик напоминаний.
-
-        :param bot: объект бота для отправки сообщений
-        :type bot: aiogram.Bot
-        :param db: объект базы данных для работы с задачами
-        :type db: Database
-        """
-        self.bot = bot
-        self.db = db
-        self.scheduler = AsyncIOScheduler()
-
-    async def start(self):
-        """
-        Запускает планировщик напоминаний.
-
-        Должен быть вызван один раз при старте бота.
-
-        :returns: None
-        """
-        self.scheduler.start()
-
-    def add_reminder(self, user_id: int, task_id: int, task_text: str, reminder_time: datetime):
-        """
-        Добавляет напоминание о задаче в планировщик.
-
-        :param user_id: ID пользователя в Telegram
-        :type user_id: int
-        :param task_id: ID задачи в базе данных
-        :type task_id: int
-        :param task_text: текст задачи для напоминания
-        :type task_text: str
-        :param reminder_time: время отправки напоминания
-        :type reminder_time: datetime.datetime
-        :returns: None
-        """
-        self.scheduler.add_job(
-            self._send_reminder,
-            trigger=DateTrigger(run_date=reminder_time),
-            args=[user_id, task_id, task_text],
-            id=f'reminder_{user_id}_{task_id}'
-        )
-
-    async def _send_reminder(self, user_id: int, task_id: int, task_text: str):
-        """
-        Отправляет напоминание пользователю.
-
-        Внутренний метод, вызывается планировщиком автоматически.
-
-        :param user_id: ID пользователя в Telegram
-        :type user_id: int
-        :param task_id: ID задачи в базе данных
-        :type task_id: int
-        :param task_text: текст задачи для напоминания
-        :type task_text: str
-        :returns: None
-        :raises Exception: при ошибках отправки сообщения
-        """
-        try:
-            await self.bot.send_message(
-                user_id,
-                f"Напоминание: Задача '{task_text}' (ID: {task_id}) "
-                f"приближается к дедлайну! Завтра последний день."
+    def create_table(self, user_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+             CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                task_text TEXT NOT NULL,
+                category TEXT,
+                done INTEGER DEFAULT 0,
+                deadline DATE
             )
-        except Exception as e:
-            print(f'Ошибка отправки напоминания: {e}')
+        ''')
+        conn.commit()
+        conn.close()
+
+    def add_task(self, user_id, task_text, category=None, deadline=None):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+                    INSERT INTO tasks (user_id, task_text, category, deadline)
+                    VALUES (?, ?, ?, ?)
+                ''', (user_id, task_text, category, deadline))
+        task_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return task_id
+
+    def get_tasks(self, user_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+                    SELECT id, user_id, task_text, category, done, deadline
+                    FROM tasks WHERE user_id = ? ORDER BY id
+                ''', (user_id,))
+        tasks = cursor.fetchall()
+        conn.close()
+        return tasks
+
+    def mark_done(self, user_id, task_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE tasks SET done = 1 WHERE id = ? AND user_id = ?', (task_id, user_id))
+        updated = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return updated
+
+    def delete_task(self, user_id, task_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM tasks WHERE id = ? AND user_id = ?', (task_id, user_id))
+        deleted = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        return deleted
+
+    def clear_all_tasks(self, user_id):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM tasks WHERE user_id = ?', (user_id,))
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return deleted_count
