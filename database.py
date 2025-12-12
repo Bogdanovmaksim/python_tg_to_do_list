@@ -5,19 +5,58 @@ from datetime import date
 class Database:
 
     def __init__(self, db_name='todo_bot.db'):
+        """
+        Инициализирует объект базы данных.
+
+        :param db_name: Имя файла базы данных.
+        :type db_name: str
+        :example:
+                db = Database('todo_bot.db')
+                db = Database()
+        """
         self.db_name = db_name
         self._ensure_db_exists()
 
     def _ensure_db_exists(self):
+        """
+        Проверяет существование файла базы данных и создает его при необходимости.
+
+        :raises sqlite3.Error: Если не удается создать файл базы данных.
+        :example:
+        self._ensure_db_exists()
+
+        """
         if not os.path.exists(self.db_name):
             conn = sqlite3.connect(self.db_name)
             conn.close()
 
     def _get_connection(self):
+        """
+        Создает и возвращает соединение с базой данных.
+
+        :param user_id: ID пользователя Telegram (используется для логики изоляции).
+        :type user_id: int
+        :return: Соединение с SQLite базой данных.
+        :rtype: sqlite3.Connection
+        :raises sqlite3.Error: Если не удается установить соединение.
+        :example:
+            conn = self._get_connection(123456)
+        """
         conn = sqlite3.connect(self.db_name)
         return conn
 
     def create_table(self, user_id):
+        """
+        Создает таблицу tasks если она не существует.
+
+        :param user_id: ID пользователя Telegram (для совместимости с интерфейсом).
+        :type user_id: int
+        :raises sqlite3.Error: Если не удается создать таблицу.
+        :example:
+            db.create_table(123456)
+
+        """
+
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -34,6 +73,21 @@ class Database:
         conn.close()
 
     def add_task(self, user_id, task_text, category=None, deadline=None):
+        """
+        Добавляет новую задачу для указанного пользователя.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :param task_text: Текст задачи.
+        :type task_text: str
+        :type: category: str
+        :type: deadline: datetime
+        :return: ID добавленной задачи
+        :raises sqlite3.Error: Если не удается добавить задачу.
+        :example:
+            task_id = db.add_task(123456, "Купить молоко")
+
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -46,6 +100,18 @@ class Database:
         return task_id
 
     def get_tasks(self, user_id):
+        """
+        Получает все задачи для указанного пользователя.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :return: Список задач пользователя.
+        :rtype: list of tuples
+        :raises sqlite3.Error: Если не удается получить задачи.
+        :example:
+            tasks = db.get_tasks(123456)
+
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -57,6 +123,20 @@ class Database:
         return tasks
 
     def mark_done(self, user_id, task_id):
+        """
+        Отмечает задачу как выполненную.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :param task_id: ID задачи для отметки.
+        :type task_id: int
+        :return: True если задача была обновлена, False если задача не найдена.
+        :rtype: bool
+        :raises sqlite3.Error: Если не удается обновить задачу.
+        :example:
+            result = db.mark_done(123456, 1)  # True - задача найдена и обновлена
+            result = db.mark_done(123456, 999)  # False - задача не найдена
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('UPDATE tasks SET done = 1 WHERE id = ? AND user_id = ?', (task_id, user_id))
@@ -66,6 +146,20 @@ class Database:
         return updated
 
     def delete_task(self, user_id, task_id):
+        """
+        Удаляет задачу пользователя.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :param task_id: ID задачи для удаления.
+        :type task_id: int
+        :return: True если задача была удалена, False если задача не найдена.
+        :rtype: bool
+        :raises sqlite3.Error: Если не удается удалить задачу.
+        :example:
+            result = db.delete_task(123456, 1)
+            result = db.delete_task(123456, 999)
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM tasks WHERE id = ? AND user_id = ?', (task_id, user_id))
@@ -75,6 +169,17 @@ class Database:
         return deleted
 
     def clear_all_tasks(self, user_id):
+        """
+        Удаляет все задачи пользователя.
+
+        :param user_id: ID пользователя Telegram.
+        :type user_id: int
+        :return: Количество удаленных задач.
+        :rtype: int
+        :raises sqlite3.Error: Если не удается удалить задачи.
+        :example:
+            deleted_count = db.clear_all_tasks(123456)
+        """
         conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute('DELETE FROM tasks WHERE user_id = ?', (user_id,))
