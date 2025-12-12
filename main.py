@@ -351,7 +351,7 @@ async def cmd_list_callback(callback_query: types.CallbackQuery):
     Функция обработчик кнопки Список задач. Выводит пользователю все активные и завершённые задачи
 
     :param callback_query: callback запрос от кнопки "Список задач"
-    :type: types.CallbackQuery
+    :type types.CallbackQuery: aiogram.types.CallbackQuery
     :returns: None
     :raises Exception: при ошибках с работой базой данных
     '''
@@ -465,8 +465,8 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :returns: Отмечает задачу выполненной
-    :rtype: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
     '''
     user_id = callback_query.from_user.id
 
@@ -491,8 +491,8 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
 
     :param callback_query: объект callback запроса от инлайн-кнопки
     :type callback_query: aiogram.types.CallbackQuery
-    :returns: Отмечает задачу удаленной
-    :rtype: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
     '''
     user_id = callback_query.from_user.id
 
