@@ -211,6 +211,15 @@ async def finalize_add_task(source, state: FSMContext):
 
 
 async def cmd_list_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Функция обработчик кнопки Список задач. Выводит пользователю все активные и завершённые задачи
+
+    :param callback_query: callback запрос от кнопки "Список задач"
+    :type types.CallbackQuery: aiogram.types.CallbackQuery
+    :returns: None
+    :raises Exception: при ошибках с работой базой данных
+    '''
     user_id = callback_query.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -296,6 +305,15 @@ async def show_statistics(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data.startswith('done_'))
 async def process_done_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для отметки выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
+    '''
     user_id = callback_query.from_user.id
 
     task_id = int(callback_query.data.split('_')[1])
@@ -313,6 +331,15 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data.startswith('delete_'))
 async def process_delete_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для удаления выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
+    '''
     user_id = callback_query.from_user.id
 
     task_id = int(callback_query.data.split('_')[1])
