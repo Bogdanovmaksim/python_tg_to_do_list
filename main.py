@@ -33,12 +33,34 @@ class AddTaskStates(StatesGroup):
 
 
 def get_back_keyboard():
+    '''
+
+    Генерирует клавиатуру с кнопкой "Назад".
+
+    :returns: InlineKeyboardMarkup с одной кнопкой "Назад"
+    :rtype: InlineKeyboardMarkup
+    '''
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='⬅️ Назад', callback_data='back_to_start'), ]
     ])
 
 
 def get_choice_keyboard(yes_text, no_text, yes_callback, no_callback):
+    '''
+
+    Генерирует клавиатуру с двумя вариантами выбора.
+
+    :param yes_text: текст для кнопки утвердительного выбора
+    :type yes_text: str
+    :param no_text: текст для кнопки отрицательного выбора
+    :type no_text: str
+    :param yes_callback: callback данные для утвердительной кнопки
+    :type yes_callback: str
+    :param no_callback: callback данные для отрицательной кнопки
+    :type no_callback: str
+    :returns: InlineKeyboardMarkup с двумя кнопками выбора
+    :rtype: InlineKeyboardMarkup
+    '''
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=yes_text, callback_data=yes_callback)],
         [InlineKeyboardButton(text=no_text, callback_data=no_callback)]
@@ -47,6 +69,21 @@ def get_choice_keyboard(yes_text, no_text, yes_callback, no_callback):
 
 @dp.message(Command('start'))
 async def cmd_start(message: Message, state: FSMContext):
+    '''
+
+    Обработчик команды /start. Приветствует пользователя и показывает главное меню.
+
+    Операции:
+        1. Очищает состояние FSM
+        2. Создает таблицу в БД для пользователя (если не существует)
+        3. Показывает главное меню с доступными действиями
+
+    :param message: сообщение с командой /start
+    :type message: aiogram.types.Message
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     await state.clear()
     user_id = message.from_user.id
     keyboard = [
@@ -65,6 +102,22 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data in ["add", "list","stats", "clear_all"])
 async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    '''
+
+    Обработчик основных действий главного меню.
+
+    Обрабатывает callback от кнопок:
+        - "add": переход к добавлению задачи
+        - "list": показ списка задач
+        - "stats": показ статистики
+        - "clear_all": очистка всех задач
+
+    :param callback_query: callback запрос от нажатия кнопки меню
+    :type callback_query: types.CallbackQuery
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     await state.clear()
     user_id = callback_query.from_user.id
     action = callback_query.data
@@ -90,6 +143,19 @@ async def process_menu_callback(callback_query: types.CallbackQuery, state: FSMC
 
 @dp.message(StateFilter(AddTaskStates.waiting_for_text))
 async def process_task_text(message: Message, state: FSMContext):
+    '''
+
+    Обработчик ввода текста задачи.
+
+    Проверяет, что текст не пустой, сохраняет его в состоянии FSM
+    и предлагает добавить категорию.
+
+    :param message: сообщение с текстом задачи
+    :type message: aiogram.types.Message
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     task_text = message.text.strip()
     if not task_text:
         await message.reply("Текст не может быть пустым. Введи текст задачи:", reply_markup=get_back_keyboard())
@@ -101,6 +167,19 @@ async def process_task_text(message: Message, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data in ['add_category', 'skip_category'])
 async def process_category_choice(callback_query: types.CallbackQuery, state: FSMContext):
+    '''
+
+    Обработчик выбора о добавлении категории.
+
+    Если выбран "add_category": переходит к вводу названия категории
+    Если выбран "skip_category": пропускает добавление категории и предлагает добавить дедлайн
+
+    :param callback_query: callback запрос от выбора категории
+    :type callback_query: types.CallbackQuery
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     if callback_query.data == "add_category":
         await callback_query.message.edit_text("Введи название категории:", reply_markup=get_back_keyboard())
         await state.set_state(AddTaskStates.waiting_for_category)
@@ -111,8 +190,22 @@ async def process_category_choice(callback_query: types.CallbackQuery, state: FS
     await callback_query.answer()
 
 
+
 @dp.callback_query(lambda c: c.data in ['add_deadline', 'skip_deadline'])
 async def process_deadline_choice(callback_query: types.CallbackQuery, state: FSMContext):
+    '''
+
+    Обработчик выбора о добавлении дедлайна.
+
+    Если выбран "add_deadline": переходит к вводу даты дедлайна
+    Если выбран "skip_deadline": пропускает добавление дедлайна и завершает добавление задачи
+
+    :param callback_query: callback запрос от выбора дедлайна
+    :type callback_query: types.CallbackQuery
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     if callback_query.data == "add_deadline":
         await callback_query.message.edit_text("Введи дедлайн в формате YYYY-MM-DD:", reply_markup=get_back_keyboard())
         await state.set_state(AddTaskStates.waiting_for_deadline)
@@ -124,6 +217,19 @@ async def process_deadline_choice(callback_query: types.CallbackQuery, state: FS
 
 @dp.message(StateFilter(AddTaskStates.waiting_for_category))
 async def process_category_text(message: Message, state: FSMContext):
+    '''
+
+    Обработчик ввода названия категории.
+
+    Проверяет, что категория не пустая, сохраняет её в состоянии FSM
+    и предлагает добавить дедлайн.
+
+    :param message: сообщение с названием категории
+    :type message: aiogram.types.Message
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     category = message.text.strip()
     if not category:
         await message.reply("Категория не может быть пустой. Введи название категории:",
@@ -136,6 +242,19 @@ async def process_category_text(message: Message, state: FSMContext):
 
 @dp.message(StateFilter(AddTaskStates.waiting_for_deadline))
 async def process_deadline_text(message: Message, state: FSMContext):
+    '''
+
+    Обработчик ввода даты дедлайна.
+
+    Проверяет формат даты, валидность (не в прошлом, не дальше 10 лет),
+    сохраняет дату в состоянии FSM и завершает добавление задачи.
+
+    :param message: сообщение с датой дедлайна
+    :type message: aiogram.types.Message
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     deadline_str = message.text.strip()
     try:
         deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
@@ -144,7 +263,7 @@ async def process_deadline_text(message: Message, state: FSMContext):
             await message.reply("Дедлайн не может быть в прошлом. Введи будущую дату (YYYY-MM-DD):",
                                 reply_markup=get_back_keyboard())
             return
-        if deadline > today.replace(year=today.year + 10):
+        if deadline > today.replace(year=today.year + 10):  # Не дальше 10 лет
             await message.reply("Дедлайн слишком далек. Введи дату в пределах 10 лет (YYYY-MM-DD):",
                                 reply_markup=get_back_keyboard())
             return
@@ -156,6 +275,22 @@ async def process_deadline_text(message: Message, state: FSMContext):
 
 
 async def finalize_add_task(source, state: FSMContext):
+    '''
+
+    Завершает процесс добавления задачи в базу данных.
+
+    Получает данные из состояния FSM, валидирует и преобразует дедлайн,
+    добавляет задачу в БД, создает напоминание (если задан дедлайн),
+    показывает результат пользователю и очищает состояние.
+
+    :param source: источник запроса (может быть Message или CallbackQuery)
+    :type source: aiogram.types.Message или aiogram.types.CallbackQuery
+    :param state: контекст состояния FSM с данными задачи
+    :type state: FSMContext
+    :returns: None
+    :raises RuntimeError: если не удалось добавить задачу в БД
+    :raises Exception: при ошибках валидации дедлайна или работе с БД
+    '''
     user_id = source.from_user.id
     data = await state.get_data()
     task_text = data.get('task_text')
@@ -211,6 +346,15 @@ async def finalize_add_task(source, state: FSMContext):
 
 
 async def cmd_list_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Функция обработчик кнопки Список задач. Выводит пользователю все активные и завершённые задачи
+
+    :param callback_query: callback запрос от кнопки "Список задач"
+    :type types.CallbackQuery: aiogram.types.CallbackQuery
+    :returns: None
+    :raises Exception: при ошибках с работой базой данных
+    '''
     user_id = callback_query.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -240,12 +384,31 @@ async def cmd_list_callback(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data == "back_to_start")
 async def back_to_start(callback_query: types.CallbackQuery, state: FSMContext):
+    '''
+
+    Обработчик кнопки "Назад". Возвращает пользователя в начальное меню.
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: types.CallbackQuery
+    :param state: контекст состояния FSM
+    :type state: FSMContext
+    :returns: None
+    '''
     await state.clear()
     await cmd_start(callback_query.message, state)
     await callback_query.answer()
 
 
 async def show_statistics(callback_query: types.CallbackQuery):
+    '''
+
+    Функция обрабатывает кнопку "Статистика". Выводит пользователю полную статистику по его задачам
+
+    :param callback_query: callback запрос от нажатия кнопки "Статистика"
+    :type callback_query: types.CallbackQuery
+    :returns: None
+    :raises Exception: при ошибках работы из базы данных
+    '''
     user_id = callback_query.from_user.id
     try:
         tasks = db.get_tasks(user_id)
@@ -296,6 +459,15 @@ async def show_statistics(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data.startswith('done_'))
 async def process_done_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для отметки выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
+    '''
     user_id = callback_query.from_user.id
 
     task_id = int(callback_query.data.split('_')[1])
@@ -313,6 +485,15 @@ async def process_done_callback(callback_query: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data.startswith('delete_'))
 async def process_delete_callback(callback_query: types.CallbackQuery):
+    '''
+
+    Обработчик инлайн-кнопок для удаления выполненых задач
+
+    :param callback_query: объект callback запроса от инлайн-кнопки
+    :type callback_query: aiogram.types.CallbackQuery
+    :returns: none
+    :rtype: none
+    '''
     user_id = callback_query.from_user.id
 
     task_id = int(callback_query.data.split('_')[1])
@@ -329,9 +510,25 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
 
 @dp.message()
 async def unknown_command(message: Message):
+    '''
+
+    Обработчик любых команд неизвестных боту
+
+    :param message: Любая команда, не заданная боту
+    :type message: aiogram.types.Message
+    :returns: Отправляет пользователю сообщение с подсказкой ввести команду /start
+    :rtype: aiogram.types.Message
+    '''
     await message.reply('Неизвестная команда. Используй /start для справки.', reply_markup=get_back_keyboard())
 
 async def main():
+    '''
+
+    Основная асинхронная функция для запуска бота.
+
+    :returns: запускает поллинг бота и планировщик напоминаний
+    :rtype: None
+    '''
     await scheduler.start()
     await dp.start_polling(bot)
 
