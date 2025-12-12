@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>python_tg_to_do_list.test_main.DatabaseTest</title>
+    <meta name="generator" content="pydoctor 25.10.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+    
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          Todo Bot <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="apidocs-help-button" title="Help" href="apidocs-help.html"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 10px;">
+          <p>For more information on the search, visit the <a href="apidocs-help.html#rst-search">help page</a>.</p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Class</span>
+        <code class="thisobject"><a href="python_tg_to_do_list.test_main.DatabaseTest.html" class="internal-link" title="This class"><wbr></wbr>Database<wbr></wbr>Test</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Methods</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#setUp" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.setUp">set<wbr></wbr>Up</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#tearDown" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.tearDown">tear<wbr></wbr>Down</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_1_add_and_get_tasks" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_1_add_and_get_tasks">test<wbr></wbr>_1<wbr></wbr>_add<wbr></wbr>_and<wbr></wbr>_get<wbr></wbr>_tasks</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_2_mark_task_as_done" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_2_mark_task_as_done">test<wbr></wbr>_2<wbr></wbr>_mark<wbr></wbr>_task<wbr></wbr>_as<wbr></wbr>_done</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_3_delete_task" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_3_delete_task">test<wbr></wbr>_3<wbr></wbr>_delete<wbr></wbr>_task</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_4_clear_all_tasks" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_4_clear_all_tasks">test<wbr></wbr>_4<wbr></wbr>_clear<wbr></wbr>_all<wbr></wbr>_tasks</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_5_invalid_operations" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_5_invalid_operations">test<wbr></wbr>_5<wbr></wbr>_invalid<wbr></wbr>_operations</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Attributes</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#db" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.db">db</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test_db" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_db">test<wbr></wbr>_db</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#user_id" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.user_id">user<wbr></wbr>_id</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code><a href="python_tg_to_do_list.test_main.html" class="internal-link" title="The parent of this class">test<wbr></wbr>_main</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        <div class="childrenKindTitle">Classes</div>
+        <ul>
+    
+    <li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="python_tg_to_do_list.test_main.DatabaseTest.html" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest"><wbr></wbr>Database<wbr></wbr>Test</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="python_tg_to_do_list.test_main.DateValidationTest.html" class="internal-link" title="python_tg_to_do_list.test_main.DateValidationTest"><wbr></wbr>Date<wbr></wbr>Validation<wbr></wbr>Test</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="python_tg_to_do_list.test_main.StatisticsTest.html" class="internal-link" title="python_tg_to_do_list.test_main.StatisticsTest"><wbr></wbr>Statistics<wbr></wbr>Test</a></code>
+            </div>
+        
+
+    </li>
+</ul>
+
+        
+         
+
+        
+         
+
+        
+         
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapse-sidebar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <main class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="class"><code><code><a href="index.html" class="internal-link">python_tg_to_do_list</a></code><wbr></wbr>.<code><a href="python_tg_to_do_list.test_main.html" class="internal-link" title="python_tg_to_do_list.test_main">test_main</a></code><wbr></wbr>.<code><a href="python_tg_to_do_list.test_main.DatabaseTest.html" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest">DatabaseTest</a></code></code></h1>
+          <div id="show-private">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          class documentation
+        </div>
+
+        <div class="extrasDocstring">
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">DatabaseTest</span>(unittest.TestCase):</code></p><p><a href="classIndex.html#python_tg_to_do_list.test_main.DatabaseTest">View In Hierarchy</a></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p>Тесты для работы с базой данных.</p>
+<p>Проверяет основные CRUD операции: создание, чтение,
+обновление и удаление задач в базе данных.</p>
+</div>
+        </div>
+
+        <div id="split-tables">
+          <table class="children sortable" id="id19">
+  
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#setUp" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.setUp">set<wbr></wbr>Up</a></code></td>
+    <td>Настройка тестового окружения перед каждым тестом.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#tearDown" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.tearDown">tear<wbr></wbr>Down</a></code></td>
+    <td>Очистка после каждого теста.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test_1_add_and_get_tasks" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_1_add_and_get_tasks">test<wbr></wbr>_1<wbr></wbr>_add<wbr></wbr>_and<wbr></wbr>_get<wbr></wbr>_tasks</a></code></td>
+    <td>Тест добавления и получения задач из базы данных.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test_2_mark_task_as_done" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_2_mark_task_as_done">test<wbr></wbr>_2<wbr></wbr>_mark<wbr></wbr>_task<wbr></wbr>_as<wbr></wbr>_done</a></code></td>
+    <td>Тест отметки задачи как выполненной.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test_3_delete_task" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_3_delete_task">test<wbr></wbr>_3<wbr></wbr>_delete<wbr></wbr>_task</a></code></td>
+    <td>Тест удаления задачи из базы данных.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test_4_clear_all_tasks" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_4_clear_all_tasks">test<wbr></wbr>_4<wbr></wbr>_clear<wbr></wbr>_all<wbr></wbr>_tasks</a></code></td>
+    <td>Тест очистки всех задач пользователя.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test_5_invalid_operations" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_5_invalid_operations">test<wbr></wbr>_5<wbr></wbr>_invalid<wbr></wbr>_operations</a></code></td>
+    <td>Тест обработки невалидных операций.</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#db" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.db">db</a></code></td>
+    <td><span class="rst-undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#test_db" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.test_db">test<wbr></wbr>_db</a></code></td>
+    <td><span class="rst-undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#user_id" class="internal-link" title="python_tg_to_do_list.test_main.DatabaseTest.user_id">user<wbr></wbr>_id</a></code></td>
+    <td><span class="rst-undocumented">Undocumented</span></td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="child-list">
+          <div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.setUp">
+    
+  </a>
+  <a name="setUp">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">setUp</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#setUp" title="python_tg_to_do_list.test_main.DatabaseTest.setUp">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Настройка тестового окружения перед каждым тестом.</p>
+<p>Создает временную базу данных и объект Database для тестирования.</p>
+</div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.tearDown">
+    
+  </a>
+  <a name="tearDown">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">tearDown</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#tearDown" title="python_tg_to_do_list.test_main.DatabaseTest.tearDown">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Очистка после каждого теста.</p>
+<p>Удаляет временную базу данных, созданную во время теста.</p>
+</div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_1_add_and_get_tasks">
+    
+  </a>
+  <a name="test_1_add_and_get_tasks">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">test_1_add_and_get_tasks</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#test_1_add_and_get_tasks" title="python_tg_to_do_list.test_main.DatabaseTest.test_1_add_and_get_tasks">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Тест добавления и получения задач из базы данных.</p>
+<p>Проверяет:
+- Добавление задач с разными параметрами
+- Корректное сохранение данных в БД
+- Получение всех задач пользователя</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Unknown Field: assert</td></tr><tr><td colspan="2">Количество задач соответствует добавленным</td></tr><tr><td colspan="2">Данные задач сохранены корректно</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_2_mark_task_as_done">
+    
+  </a>
+  <a name="test_2_mark_task_as_done">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">test_2_mark_task_as_done</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#test_2_mark_task_as_done" title="python_tg_to_do_list.test_main.DatabaseTest.test_2_mark_task_as_done">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Тест отметки задачи как выполненной.</p>
+<p>Проверяет:
+- Функцию mark_done для изменения статуса задачи
+- Корректное обновление поля 'done' в базе данных</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Unknown Field: assert</td></tr><tr><td colspan="2">Функция возвращает True при успешном обновлении</td></tr><tr><td colspan="2">Статус задачи изменен на 'выполнено' в БД</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_3_delete_task">
+    
+  </a>
+  <a name="test_3_delete_task">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">test_3_delete_task</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#test_3_delete_task" title="python_tg_to_do_list.test_main.DatabaseTest.test_3_delete_task">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Тест удаления задачи из базы данных.</p>
+<p>Проверяет:
+- Функцию delete_task для удаления задачи по ID
+- Фактическое удаление задачи из БД</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Unknown Field: assert</td></tr><tr><td colspan="2">Функция возвращает True при успешном удалении</td></tr><tr><td colspan="2">Задача больше не присутствует в списке задач</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_4_clear_all_tasks">
+    
+  </a>
+  <a name="test_4_clear_all_tasks">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">test_4_clear_all_tasks</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#test_4_clear_all_tasks" title="python_tg_to_do_list.test_main.DatabaseTest.test_4_clear_all_tasks">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Тест очистки всех задач пользователя.</p>
+<p>Проверяет:
+- Функцию clear_all_tasks для массового удаления
+- Корректный подсчет удаленных записей
+- Полную очистку списка задач</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Unknown Field: assert</td></tr><tr><td colspan="2">Возвращает правильное количество удаленных задач</td></tr><tr><td colspan="2">Список задач становится пустым</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_5_invalid_operations">
+    
+  </a>
+  <a name="test_5_invalid_operations">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span>&#160;<span class="py-defname">test_5_invalid_operations</span><span class="function-signature">(<span class="rst-sig-param"><span class="rst-undocumented">self</span></span>):</span>
+    
+    <a class="headerLink" href="#test_5_invalid_operations" title="python_tg_to_do_list.test_main.DatabaseTest.test_5_invalid_operations">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Тест обработки невалидных операций.</p>
+<p>Проверяет:
+- Поведение функций при работе с несуществующими задачами
+- Обработку граничных случаев
+- Корректные возвращаемые значения при ошибках</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Unknown Field: assert</td></tr><tr><td colspan="2">Функции возвращают False для несуществующих задач</td></tr><tr><td colspan="2">Очистка пустого списка возвращает 0</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.db">
+    
+  </a>
+  <a name="db">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">db</span> =
+    
+    <a class="headerLink" href="#db" title="python_tg_to_do_list.test_main.DatabaseTest.db">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.test_db">
+    
+  </a>
+  <a name="test_db">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">test_db</span>: <code>str</code> =
+    
+    <a class="headerLink" href="#test_db" title="python_tg_to_do_list.test_main.DatabaseTest.test_db">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="python_tg_to_do_list.test_main.DatabaseTest.user_id">
+    
+  </a>
+  <a name="user_id">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">user_id</span>: <code>int</code> =
+    
+    <a class="headerLink" href="#user_id" title="python_tg_to_do_list.test_main.DatabaseTest.user_id">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div>
+        </div>
+      
+      </main>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container-fluid">
+    <a href="index.html">API Documentation</a> for Todo Bot,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    25.10.1 at 2025-12-12 23:36:32.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>
