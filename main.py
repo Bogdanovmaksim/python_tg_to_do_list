@@ -468,7 +468,19 @@ async def process_done_callback(callback_query: types.CallbackQuery):
     :returns: Отмечает задачу выполненной
     :rtype: aiogram.types.CallbackQuery
     '''
-    pass
+    user_id = callback_query.from_user.id
+
+    task_id = int(callback_query.data.split('_')[1])
+
+    try:
+        if db.mark_done(user_id, task_id):
+            await callback_query.message.edit_text("Задача отмечена каквыполненная!",reply_markup = get_back_keyboard())
+            await callback_query.answer("Готово!")
+        else:
+            await callback_query.answer("Задача не найдена.")
+    except Exception as e:
+        logging.error(f"Ошибка при отметке: {e}")
+        await callback_query.answer("Ошибка.")
 
 
 @dp.callback_query(lambda c: c.data.startswith('delete_'))
@@ -482,7 +494,19 @@ async def process_delete_callback(callback_query: types.CallbackQuery):
     :returns: Отмечает задачу удаленной
     :rtype: aiogram.types.CallbackQuery
     '''
-    pass
+    user_id = callback_query.from_user.id
+
+    task_id = int(callback_query.data.split('_')[1])
+
+    try:
+        if db.delete_task(user_id, task_id):
+            await callback_query.message.edit_text("Задача удалена! Используй /list для обновления.", reply_markup=get_back_keyboard())
+            await callback_query.answer("Удалено!")
+        else:
+            await callback_query.answer("Задача не найдена.")
+    except Exception as e:
+        logging.error(f"Ошибка при удалении: {e}")
+        await callback_query.answer("Ошибка.")
 
 @dp.message()
 async def unknown_command(message: Message):
