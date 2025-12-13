@@ -25,6 +25,7 @@
 - `database.py`: Работа с SQLite.
 - `scheduler.py`: Планировщик напоминаний (APScheduler).
 - `requirements.txt`: Зависимости.
+- `test_main.py`: Тесты.
 - `README.md`: Описание.
 
 ## Примечания
